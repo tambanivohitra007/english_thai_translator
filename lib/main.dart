@@ -22,12 +22,10 @@ import 'widgets/mic_button.dart';
 // -----------------------------------------------------------------------------
 
 // OpenAI Configuration
-// Set your API key via: --dart-define=OPENAI_API_KEY=your_key_here
-// Or replace the empty string below for local development (DO NOT COMMIT)
-const String _openAiApiKey = String.fromEnvironment(
-  'OPENAI_API_KEY',
-  defaultValue: '',
-);
+// API key is stored in secrets.dart (excluded from git)
+import 'secrets.dart' as secrets;
+
+const String _openAiApiKey = secrets.API_KEY;
 const String _openAiUrl =
     'wss://api.openai.com/v1/realtime?model=gpt-realtime-mini-2025-10-06';
 
