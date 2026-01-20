@@ -1,0 +1,243 @@
+OBJECTIVE (UPDATED)
+
+Fix critical issues, harden the implementation, and apply best practices
+without changing the core product behavior, while upgrading the system to support:
+
+Bidirectional realtime speech translation
+English ↔ Thai (speech → speech)
+
+The system must switch directions instantly and work naturally during face-to-face conversations.
+
+CONTEXT (UNCHANGED, BUT EXPANDED)
+
+The app is a mobile, real-time English ↔ Thai speech-to-speech translator optimized for daily conversations in Thailand.
+
+Target Outcomes
+
+~70% real conversation coverage
+
+< 1.5 seconds perceived latency (both directions)
+
+Natural spoken Thai and spoken English
+
+Stable realtime audio behavior on mobile networks
+
+DEPLOYMENT CONSTRAINT (UNCHANGED)
+☁️ Hosting Model
+
+Everything runs on Google Cloud Run
+
+Cloud Run hosts a persistent WebSocket service
+
+Flutter app connects only to Cloud Run
+
+Cloud Run proxies all OpenAI Realtime communication
+
+CORE NEW REQUIREMENT: TWO-WAY CONVERSATION (MANDATORY)
+🔁 Bidirectional Translation Model
+
+The system must support both directions:
+
+Speaker	Input	Output
+User	English speech	Thai speech
+Thai person	Thai speech	English speech
+🎙️ Direction Control (MVP-Friendly)
+
+The app must support explicit conversation turns using one of these (choose ONE):
+
+Option A — Two Microphone Buttons (Recommended for MVP)
+
+🎤 EN → TH (You speak English)
+
+🎤 TH → EN (Thai person speaks)
+
+This is:
+
+faster
+
+clearer in noisy environments
+
+less error-prone than auto detection
+
+Option B — Manual Toggle
+
+One mic
+
+Direction toggle switch
+
+❌ Do not implement automatic language detection for MVP
+(it increases latency and errors)
+
+TRANSLATION PROMPTS (BOTH DIRECTIONS REQUIRED)
+🇬🇧 English → 🇹🇭 Thai (UNCHANGED)
+You are a real-time interpreter for daily conversations in Thailand.
+Translate spoken English into short, polite, natural Thai suitable for face-to-face speech.
+Simplify complex sentences.
+Preserve intent rather than literal wording.
+Use casual but respectful Thai.
+Add polite particles naturally.
+Avoid formal, written, or academic Thai.
+
+🇹🇭 Thai → 🇬🇧 English (NEW — MUST ADD)
+You are a real-time interpreter for daily conversations in Thailand.
+Translate spoken Thai into clear, simple, natural English suitable for face-to-face conversation.
+Preserve intent rather than literal wording.
+Keep sentences short and conversational.
+Avoid formal or academic English.
+Do not explain the translation.
+
+
+⚠️ Prompts must be selected dynamically by Cloud Run, not the client.
+
+EXISTING PROBLEMS TO FIX (UPDATED FOR TWO-WAY)
+🔴 1. API Key Security (UNCHANGED)
+
+All OpenAI credentials live only in Cloud Run
+
+Flutter never sees API keys
+
+🔴 2. PCM Audio Playback Is Incorrect (UNCHANGED)
+
+Buffer audio deltas
+
+Assemble full response
+
+Wrap PCM → WAV
+
+Play only after response.done
+
+Applies to both directions.
+
+🔴 3. Sample Rate & Audio Format (UNCHANGED)
+
+24kHz PCM16 mono
+
+Validate before sending
+
+Resample if needed
+
+Applies to both speakers.
+
+REQUIRED IMPROVEMENTS (UPDATED)
+🟡 4. Explicit Conversation State Machine (REQUIRED)
+
+Update the state machine to reflect speaker direction:
+
+enum ConversationState {
+  idle,
+  connecting,
+  listeningEnglish,
+  listeningThai,
+  processing,
+  speaking,
+  error
+}
+
+
+UI, audio capture, and WebSocket routing must depend on this state.
+
+🟡 5. Audio Backpressure & Throttling (UNCHANGED)
+
+Drop frames under congestion
+
+Prioritize latest speech
+
+Maintain realtime feel
+
+🟡 6. Robust Transcription Handling (UPDATED)
+
+Show English transcript when Thai speaks
+
+Show Thai transcript when English speaks
+
+Update progressively
+
+Avoid flicker
+
+🟢 7. UX Enhancements (UPDATED)
+
+Two mic buttons or clear direction toggle
+
+Gender toggle affects Thai output only
+
+Clear visual cue of current speaker
+
+Graceful reconnects
+
+CLOUD RUN RESPONSIBILITIES (UPDATED)
+
+Cloud Run must now:
+
+Maintain per-session direction
+
+Inject correct system prompt per turn
+
+Handle two independent STT → LLM → TTS flows
+
+Reuse WebSocket session where possible
+
+Keep latency symmetrical in both directions
+
+NON-GOALS (UNCHANGED)
+
+Do not implement:
+
+Auto language detection
+
+Offline mode
+
+Long conversation history
+
+User accounts
+
+Analytics dashboards
+
+UI redesign
+
+REQUIRED OUTPUT FORMAT (UPDATED)
+
+Summary of Changes (including two-way support)
+
+Cloud Run–Only Architecture (two-way flow)
+
+Cloud Run WebSocket Proxy (bidirectional)
+
+Refactored Flutter Code
+
+Dual mic / direction control
+
+State machine
+
+Audio pipeline
+
+Performance Notes (both directions)
+
+Known Limitations
+
+QUALITY BAR (UNCHANGED)
+
+Assume:
+
+Noisy Thai environments
+
+Short, interrupt-heavy conversations
+
+People passing the phone back and forth
+
+The app must feel:
+
+Fast
+
+Natural
+
+Trustworthy
+
+FINAL INSTRUCTION
+
+Do not redesign the product
+
+Do not add language auto-detection
+
+Do not ask questions
+
+Implement true two-way realtime speech translation.
