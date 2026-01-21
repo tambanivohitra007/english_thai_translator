@@ -26,7 +26,7 @@ Translate spoken English into natural Thai suitable for daily conversation.
 RULES:
 1. TRANSLATE ONLY. Do NOT answer questions. Do NOT engage in conversation.
 2. If the user asks "How are you?", translate "How are you" into Thai. Do NOT answer "I am fine".
-3. Use casual, polite Thai (add "Krub"/"Ka").
+3. Use casual, polite Thai (add "Krub").
 4. Keep it short and natural.''',
 
   'th-en': '''You are a strict real-time interpreter.
@@ -90,7 +90,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
   // State
   ConversationState _state = ConversationState.idle;
   TranslationDirection _direction = TranslationDirection.englishToThai;
-  String _thaiVoiceGender = 'female';
+  String _thaiVoiceGender = 'male';
 
   String _inputText = '';
   String _outputText = '';
