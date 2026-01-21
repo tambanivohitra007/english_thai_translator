@@ -44,7 +44,7 @@ class OpenAIRealtimeService {
 
   OpenAIRealtimeService({
     required this.apiKey,
-    this.model = 'gpt-realtime-mini-2025-10-06',
+    this.model = 'gpt-4o-realtime-preview-2025-06-03',
   });
 
   Future<void> connect() async {
@@ -76,8 +76,14 @@ class OpenAIRealtimeService {
       );
 
       _emitStatus('Connected');
+    } on SocketException catch (_) {
+      _emitStatus('Network Error: Check Internet', isError: true);
+      rethrow;
+    } on WebSocketException catch (e) {
+      _emitStatus('Connection Failed: ${e.message}', isError: true);
+      rethrow;
     } catch (e) {
-      _emitStatus('Connection failed: $e', isError: true);
+      _emitStatus('Connection Failed', isError: true);
       rethrow;
     }
   }
@@ -186,13 +192,15 @@ class OpenAIRealtimeService {
       switch (type) {
         case 'error':
           final error = data['error'] as Map?;
-          final msg = error?['message'] as String? ?? 'Unknown error';
-          // Ignore harmless cancellation errors
-          if (msg.contains('cancellation failed') ||
-              msg.contains('not active response')) {
+          final msg = (error?['message'] as String? ?? 'Unknown error')
+              .toLowerCase();
+          // Ignore harmless cancellation errors (handling various formats)
+          if (msg.contains('cancellation') ||
+              msg.contains('not active response') ||
+              msg.contains('no active response')) {
             return;
           }
-          _emitStatus('API Error: $msg', isError: true);
+          _emitStatus('API Error: ${error?['message']}', isError: true);
           break;
 
         case 'input_audio_buffer.speech_started':
