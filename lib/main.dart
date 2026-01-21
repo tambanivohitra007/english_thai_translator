@@ -106,7 +106,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
   final AudioRecorder _audioRecorder = AudioRecorder();
   final AudioPlayer _audioPlayer = AudioPlayer();
 
-  // WebSocket to Cloud Run proxy
+  // WebSocket to OpenAI Realtime API
   WebSocketChannel? _websocket;
 
   // State
@@ -229,7 +229,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
       _updateSession();
 
       setState(() => _state = ConversationState.idle);
-      debugPrint('Connected to Cloud Run proxy');
+      debugPrint('Connected to OpenAI Realtime API');
     } catch (e) {
       setState(() {
         _state = ConversationState.error;
@@ -477,18 +477,30 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
   // ---------------------------------------------------------------------------
 
   Future<void> _startRecording(TranslationDirection direction) async {
-    // Connect if not connected
-    if (_websocket == null || _state == ConversationState.error) {
-      await _connectWebSocket();
-      await Future.delayed(const Duration(milliseconds: 500));
+    // -------------------------------------------------------------------------
+    // FRESH CONNECTION STRATEGY
+    // -------------------------------------------------------------------------
+    // Force close existing connection to ensure a 100% clean server state.
+    // This prevents VAD from triggering on residual audio/silence.
+    if (_websocket != null) {
+      debugPrint('Closing existing connection for fresh session...');
+      try {
+        await _websocket!.sink.close(status.normalClosure);
+      } catch (e) {
+        debugPrint('Error closing socket: $e');
+      }
+      _websocket = null;
+      // Small delay to ensure clean teardown
+      await Future.delayed(const Duration(milliseconds: 50));
     }
 
-    // Update session if direction changed
-    if (_direction != direction) {
-      _direction = direction;
-      _updateSession();
-      await Future.delayed(const Duration(milliseconds: 200));
-    }
+    // Connect to a fresh session
+    // This will internally call _updateSession() using the current _direction
+    _direction = direction; // Set direction before connecting
+    await _connectWebSocket();
+
+    // Wait for connection to be fully ready (extra buffer)
+    await Future.delayed(const Duration(milliseconds: 100));
 
     try {
       if (await _audioRecorder.hasPermission()) {
@@ -669,7 +681,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text(
-          'English ↔ Thai',
+          'Translator (English - Thai)',
           style: TextStyle(fontWeight: FontWeight.w300, shadows: []),
         ),
         centerTitle: true,
