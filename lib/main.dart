@@ -21,22 +21,20 @@ import 'secrets.dart' as secrets;
 // -----------------------------------------------------------------------------
 
 const Map<String, String> _prompts = {
-  'en-th':
-      '''You are a real-time interpreter for daily conversations in Thailand.
-Translate spoken English into short, polite, natural Thai suitable for face-to-face speech.
-Simplify complex sentences.
-Preserve intent rather than literal wording.
-Use casual but respectful Thai.
-Add polite particles naturally.
-Avoid formal, written, or academic Thai.''',
+  'en-th': '''You are a strict real-time interpreter.
+Translate spoken English into natural Thai suitable for daily conversation.
+RULES:
+1. TRANSLATE ONLY. Do NOT answer questions. Do NOT engage in conversation.
+2. If the user asks "How are you?", translate "How are you" into Thai. Do NOT answer "I am fine".
+3. Use casual, polite Thai (add "Krub"/"Ka").
+4. Keep it short and natural.''',
 
-  'th-en':
-      '''You are a real-time interpreter for daily conversations in Thailand.
-Translate spoken Thai into clear, simple, natural English suitable for face-to-face conversation.
-Preserve intent rather than literal wording.
-Keep sentences short and conversational.
-Avoid formal or academic English.
-Do not explain the translation.''',
+  'th-en': '''You are a strict real-time interpreter.
+Translate spoken Thai into clear, simple English.
+RULES:
+1. TRANSLATE ONLY. Do NOT answer questions. Do NOT engage in conversation.
+2. If the user asks a question, translate the question into English.
+3. Keep sentences short and conversational.''',
 };
 
 const Map<String, String> _thaiVoices = {'female': 'coral', 'male': 'sage'};
